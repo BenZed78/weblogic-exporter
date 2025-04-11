@@ -49,6 +49,17 @@ def get_queue_messages(host, auth, instance_name, queue_name):
             "instance": instance_name
         }
 
+def discover_queues(weblogic_host, auth, server_name, jms_server):
+    url = f"{weblogic_host}/management/weblogic/latest/domainRuntime/serverRuntimes/{server_name}/JMSRuntime/JMSServers/{jms_server}/destinations"
+    try:
+        response = requests.get(url, auth=auth, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+        return [entry["name"] for entry in data.get("items", [])]
+    except requests.exceptions.RequestException as e:
+        print(f"Fehler beim Abrufen der Queues: {e}")
+        return []
+
 @app.route("/metrics")
 def prometheus_metrics():
     metrics = []
